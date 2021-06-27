@@ -1,7 +1,7 @@
 version: "3.7"
 services:
-  web:
-    image: ${DOCKER_IMAGE}
+  shop:
+    image: harbor.chlin.tk/python/shop:latest
     container_name: shop
     environment:
       - TZ=Asia/Taipei
@@ -10,4 +10,4 @@ services:
     restart: always
     command: python manage.py runserver 0.0.0.0:9000
     ports: 
-      - "9000":"9000"
+      - 9000:9000
