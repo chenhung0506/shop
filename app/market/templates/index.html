@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        {% load static %}
+        <!-- <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet"> -->
+        <link href="{% static 'css/style.css' %}" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    </head>
+    <body id="page-top">
+        <div class="container justify-content-center">
+            <div class="row">
+              <div class="col-md-2">
+                select product:
+              </div>
+              <div class="col-md-2">
+                <select class="h-2rem" id="prod_options" ></select>
+              </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2">
+                  select qty:
+                </div>
+                <div class="col-md-2">
+                    <div class="number-input">
+                        <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="minus"></button>
+                        <input id="quantity" class="quantity" min="0" name="quantity" value="1" type="number">
+                        <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="plus"></button>
+                      </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-2">
+                  input your name:
+                </div>
+                <div class="col-md-2">
+                    <input class="h-2rem" id="customer" placeholder="customer"></input>
+                </div>
+              </div>
+              <div class="row">
+                  <div class="col-md-4">
+                      <input class="h-2rem" id="add_older" type="button" value="add older"></input>
+                  </div>
+              </div>
+          </div>
+
+
+        
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="productTable" width="100%" cellspacing="0">
+                    <thead>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="orderTable" width="100%" cellspacing="0">
+                    <thead>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Bootstrap core JavaScript -->
+        <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+        <script src="{% static 'vendor/bootstrap/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css">
+        <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript">
+        $(document).ready(function() {
+            $('#add_older').on('click',function(){
+                if (!document.getElementById("customer").value) {
+                    alert('please input your name')
+                }
+                e= document.getElementById("prod_options");
+                $.ajax({
+                        url: "/orders",
+                        type: "POST",
+                        dataType: "json",
+                        contentType: "application/json;charset=utf-8",
+                        dataSrc: "data",
+                        data: JSON.stringify({"product_id": e.options[e.selectedIndex].text, "qty": document.getElementById("quantity").value,"price":123, "shop_id":"shop_id", "customer_id":document.getElementById("customer").value}),
+                        success: function(returnData, textStatus, xhr){
+                            console.log(returnData);
+                            orderTable.ajax.reload();
+                        }
+                })
+            })
+
+            $.ajax({
+                url: "/products",
+                type: "GET",
+                success: function(returnData, textStatus, xhr){
+                    console.log(returnData);
+                    $.each(returnData.data, function( index, value ) {
+                        console.log( returnData.data[index]['product_id']);
+                        $('#prod_options').append("<option value="+returnData.data[index]['product_id']+">"+returnData.data[index]['product_id']+"</option>");
+                    });
+                }
+            })
+
+
+            var prodTable = $( "#productTable" ).DataTable({
+                // 參數設定[註1]
+                "bPaginate": true, // 顯示換頁
+                "searching": true, // 顯示搜尋
+                "info":	false, // 顯示資訊
+                "fixedHeader": true, // 標題置頂
+                "ajax":{
+                    url: "/products",
+                    type: "GET",
+                    // dataType: "json",
+                    // contentType: "application/json;charset=utf-8",
+                    dataSrc: "data"
+                },
+                "aoColumns": [
+                    {"mData": "product_id", "sTitle": "product_id" , "sWidth": "20%"},
+                    {"mData": "stock_pcs", "sTitle": "stock_pcs" , "sWidth": "20%"},
+                    {"mData": "price", "sTitle": "price" , "sWidth": "20%"},
+                    {"mData": "shop_id", "sTitle": "shop_id" , "sWidth": "20%"},
+                    {"mData": "vip", "sTitle": "vip" , "sWidth": "20%"},
+                    // {"mData": null, "sTitle": "設定" , "sWidth": "25%", "mRender": function (data) { return '<a href="detail.html?uid=' + data.u_id + '" class="btn btn-sm btn-secondary">編輯</a><button class="btn btn-sm btn-danger del" data-uid=' + data.u_id + '> 刪除</button>';}}
+                ],
+                render: function delUniversity(obj){
+                    console.log('success')
+                    console.log(obj.parent().siblings(":first").text())
+                }
+            });
+
+            var orderTable = $( "#orderTable" ).DataTable({
+                // 參數設定[註1]
+                "bPaginate": true, // 顯示換頁
+                "searching": true, // 顯示搜尋
+                "info":	false, // 顯示資訊
+                "fixedHeader": true, // 標題置頂
+                "ajax":{
+                    url: "/orders",
+                    type: "GET",
+                    // dataType: "json",
+                    // contentType: "application/json;charset=utf-8",
+                    dataSrc: "data"
+                },
+                "aoColumns": [
+                    {"mData": "order_id", "sTitle": "order_id" , "sWidth": "20%"},
+                    {"mData": "product_id", "sTitle": "product_id" , "sWidth": "20%"},
+                    {"mData": "qty", "sTitle": "qty" , "sWidth": "20%"},
+                    {"mData": "price", "sTitle": "price" , "sWidth": "20%"},
+                    {"mData": "shop_id", "sTitle": "shop_id" , "sWidth": "20%"},
+                    {"mData": "customer_id", "sTitle": "customer_id" , "sWidth": "20%"},
+                    // {"mData": null, "sTitle": "設定" , "sWidth": "25%", "mRender": function (data) { return '<a href="detail.html?uid=' + data.u_id + '" class="btn btn-sm btn-secondary">編輯</a><button class="btn btn-sm btn-danger del" data-uid=' + data.u_id + '> 刪除</button>';}}
+                ],
+                render: function delUniversity(obj){
+                    console.log('success')
+                    console.log(obj.parent().siblings(":first").text())
+                }
+            });
+        })
+        </script>
+    </body>
+</html>
